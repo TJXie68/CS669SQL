@@ -270,12 +270,11 @@ INSERT INTO Likes(likes_id, person_id, post_id, liked_on)
 VALUES(8001, 8, 602, '2023-09-19');
 
 CREATE TABLE post_content_history(
-post_id DECIMAL(12),
-person_id DECIMAL(12),
-old_content VARCHAR(255),
-new_content VARCHAR(255),
-update_on DATE,
-FOREIGN KEY(person_id) REFERENCES Person(person_id));
+post_id DECIMAL(12) NOT NULL,
+old_content VARCHAR(255) NOT NULL,
+new_content VARCHAR(255) NOT NULL,
+update_on DATE NOT NULL,
+FOREIGN KEY(post_id) REFERENCES Post(post_id));
 
 DELIMITER //
 CREATE TRIGGER post_update
@@ -283,15 +282,21 @@ CREATE TRIGGER post_update
     ON Post
 FOR EACH ROW
 BEGIN
-	IF new.content != Post.content
+	IF old.content <> new.content
 		THEN
-		INSERT INTO post_content_history(post_id, person_id, old_content, new_content, update_on)
-		VALUES (Post.post_id, Post.person_id, Post.old_content, new.content, new.created_on);
+		INSERT INTO post_content_history(post_id, old_content, new_content, update_on)
+		VALUES (new.post_id, old.content, new.content, DATE(sysdate()));
     END IF;
 END; //
 DELIMITER ;
 
 UPDATE Post
-SET content = 'Enjoying a cup of traditional Japanese matcha in Tokyo. Embracing the culture and flavors. #TravelDiaries #JapanAdventures',
-	created_on = '2023-10-30'
+SET content = 'Enjoying a cup of traditional Japanese matcha in Tokyo. Embracing the culture and flavors. #TravelDiaries #JapanAdventures'
 WHERE post_id = 605;
+
+DROP TABLE post_content_history;
+DROP TRIGGER post_update;
+SELECT * FROM post_content_history;
+SELECT *
+FROM Post
+WHERE post_id =605;
